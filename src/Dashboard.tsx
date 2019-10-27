@@ -4,10 +4,10 @@ import { makeStyles } from "@material-ui/core/styles";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import { MessageInterface } from "./interfaces/Message";
+import { MessageInterface, MessageStateInterface } from "./interfaces/Message";
 import { CTX } from "./Store";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme: any) => ({
   root: {
     margin: "50px",
     padding: theme.spacing(3, 2)
@@ -41,12 +41,17 @@ export const Dashboard: React.FC<Props> = () => {
   const classes = useStyles();
 
   // CTX store
-  const [allChats] = React.useContext(CTX);
-  console.log(allChats);
+  const { allChats, sendChatAction, user } = React.useContext(CTX);
 
   const topics = Object.keys(allChats);
   const [activeTopic, setActiveTopic] = React.useState(topics[0]);
   const [textValue, setTextValue] = React.useState<string>("");
+
+  const handleSendChatAction = () => {
+    const message: MessageStateInterface = { from: user, msg: textValue, topic: activeTopic }
+    sendChatAction(message);
+    setTextValue("");
+  };
 
   return (
     <div>
@@ -62,7 +67,7 @@ export const Dashboard: React.FC<Props> = () => {
             <List>
               {topics.map(topic => (
                 <ListItem
-                  onClick={e => setActiveTopic(topic)}
+                  onClick={() => setActiveTopic(topic)}
                   key={topic}
                   button
                 >
@@ -89,12 +94,13 @@ export const Dashboard: React.FC<Props> = () => {
             label="Send a chat"
             className={classes.chatBox}
             value={textValue}
-            onChange={e => setTextValue(e.target.value)}
+            onChange={(e: any) => setTextValue(e.target.value)}
           />
           <Button
             variant="contained"
             color="primary"
             className={classes.button}
+            onClick={handleSendChatAction}
           >
             Send
           </Button>

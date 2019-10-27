@@ -1,5 +1,6 @@
 import React from "react";
-import { MessageActionInterface } from "./interfaces/Message";
+import io from "socket.io-client";
+import { MessageActionInterface, MessageStateInterface } from "./interfaces/Message";
 
 interface IContextProps {
   state: any;
@@ -42,10 +43,33 @@ const reducer = (state: any, action: MessageActionInterface) => {
   }
 };
 
-interface Props {}
 
-export const Store: React.FC<Props> = props => {
-  const reducerHook = React.useReducer(reducer, initState);
+let socket: SocketIOClient.Socket;
 
-  return <CTX.Provider value={reducerHook}>{props.children}</CTX.Provider>;
+const sendChatAction = (value: any) => {
+  socket.emit("chat message", value);
+};
+
+interface Props {
+  children: any;
+}
+
+export const Store: React.FC<Props> = (props: Props) => {
+
+  const [allChats, dispatch] = React.useReducer(reducer, initState);
+
+  if (!socket) {
+    socket = io(":3001");
+    socket.on('chat message', (msg: MessageStateInterface) => {
+      dispatch({type: "RECEIVE_MESSAGE", payload: msg})
+    });
+  }
+
+  const user = 'Krystian' +  Math.floor(Math.random() * 10);
+
+  return (
+    <CTX.Provider value={{ allChats, sendChatAction, user }}>
+      {props.children}
+    </CTX.Provider>
+  );
 };
